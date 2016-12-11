@@ -1,0 +1,17 @@
+{
+   "cloudantNoSQLDB": [
+      {
+        "credentials": {
+          "username": "<TODO-replace-with-your-Cloudant-username>",
+          "password": "<TODO-replace-with-your-Cloudant-password>",
+          "host": "<TODO-replace-with-your-Cloudant-hostname>",
+          "port": 443,
+          "url": "<TODO-replace-with-your-Cloudant-URL>"
+        },
+        "label": "cloudantNoSQLDB",
+        "provider": null,
+        "plan": "Free",
+        "name": "npmjs-cloudant"
+     }
+   ]
+}

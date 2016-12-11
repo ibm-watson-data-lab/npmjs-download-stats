@@ -1,0 +1,14 @@
+declared-services:
+  npmjs-cloudant:
+    label: cloudantNoSQLDB
+    plan: Lite
+applications:
+- path: .
+  memory: 256M
+  instances: 1
+  domain: mybluemix.net
+  name: npmjs-download-stats
+  host: npmjs-download-stats
+  disk_quota: 1024M
+  services:
+  - npmjs-cloudant

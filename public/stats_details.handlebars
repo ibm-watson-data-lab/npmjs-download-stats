@@ -1,0 +1,31 @@
+     <div id="main" class="container">
+     	  <div class="row">
+     	  	<h4>Download statistics for package {{package}}<a href="/data/byMonth/{{package}}"> <i class="tiny material-icons tooltipped" data-tooltip="Download data as JSON" data-delay="50">system_update_alt</i></a> <a href="/charts/byMonth/{{package}}"><i class="tiny material-icons tooltipped" data-tooltip="Download chart as svg" data-delay="50">visibility</i></a></h4>
+     	  </div>
+	      <div class="row">
+	      Downloads per month
+	        <figure  class="col s12">
+		    	<div id="downloads_by_month"></div>
+		    </figure>
+	      </div>
+     </div>	
+
+	 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+     <script type="text/javascript" src="/js/materialize/0.97.8/js/materialize.min.js"></script>
+
+     <script>
+         $(document).ready(function(){
+
+  		  function onFail(err) {
+	   		 this.text(err);
+	  		}
+
+			var offeringvis = new SimpleDataVis("/data/byMonth/{{package}}");
+			offeringvis.attr('type', 'grouped-bar-chart')
+			    .on("data", function(data) {
+			         return data.rows;
+			    })
+			    .on("fail", onFail).render("#downloads_by_month");
+
+    	 });
+     </script>

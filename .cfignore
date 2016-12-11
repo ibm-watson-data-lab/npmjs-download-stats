@@ -1,0 +1,6 @@
+vcap_services.json
+vcap_services_template.json
+node_modules/
+media/
+*.log
+

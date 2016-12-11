@@ -1,0 +1,48 @@
+     <div id="main" class="container">
+     	  <div class="row">
+     	  </div>
+	      <div class="carousel carousel-slider center" data-indicators="true">
+		    <div class="carousel-item black text teal lighten-4">
+		      <h2>Welcome to the package download stats collection service</h2>
+		      <p class="black-text">
+            	First time visitor? Swipe to learn more.
+		      </p>
+		      <i class="small teal-text lighten-2 material-icons">assessment</i>
+		      <i class="small teal-text lighten-2 material-icons">settings</i>
+		      <i class="small teal-text lighten-2 material-icons">info_outline</i>
+		    </div> 
+		    <div class="carousel-item teal black-text lighten-4" href="/stats">
+		      <h2>Statistics</h2>
+		        <p>Review <a href="https://www.npmjs.com/">npmjs</a> download statistics for CDS packages. If you like numbers and charts, this is YOUR place.</p>
+		      	<a href="/stats"><i class="large material-icons tooltipped" data-tooltip="Show me the numbers!" data-delay="50">assessment</i></a>
+		    </div>
+
+		    <div class="carousel-item teal black-text lighten-4" href="/configure">
+		      <h2>Settings</h2>
+		        <p>Configure this service.</p>
+		      	<a href="/configure"><i class="large material-icons tooltipped" data-tooltip="Let me break this!" data-delay="50">settings</i></a>
+		    </div>
+
+		    <div class="carousel-item teal black-text lighten-4" href="https://github.com/ibm-cds-labs/npmjs-download-stats">
+		      <h2>About</h2>
+		        <p>Learn more about the service.</p>
+		      	<a href="https://github.com/ibm-cds-labs/npmjs-download-stats"><i class="large material-icons tooltipped" data-tooltip="Let me grab the code!" data-delay="50">info_outline</i></a>
+		    </div>		    
+
+		    <div class="carousel-item teal black-text lighten-4" href="/stats">
+		      <h2>Coming soon</h2>
+		        <p>Download fights. Is your package more popular than others?</p>
+		        <i class="large material-icons tooltipped" data-tooltip="Bring it on!" data-delay="50">thumbs_up_down</i>
+		    </div>	
+  		   </div>
+
+     </div>	
+
+	 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+     <script type="text/javascript" src="/js/materialize/0.97.8/js/materialize.min.js"></script>
+
+     <script>
+         $(document).ready(function(){
+  			$('.carousel.carousel-slider').carousel({full_width: true});
+    	 });
+     </script>

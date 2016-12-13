@@ -60,7 +60,7 @@ const init = require('./lib/initialize.js');
 	console.log('Service is initializing...');
 
 	// initialize Cloudant repository and load defaults
-	init(appEnv, function(err, dataRepository, metaRepository, collector, indexer) {
+	init(appEnv, function(err, dataRepository, metaRepository, collector, indexer, config) {
 
 		//
 		// dataRepository - cloudant handle for data database
@@ -71,45 +71,43 @@ const init = require('./lib/initialize.js');
 			process.exit(1);
 		}
 
-		// asynchronously build index and collect missing statistics
-		debug('Building index ...');
-		indexer.buildIndex(function(err) {
+		debug('Retrieving configuration ...');
+		config.getConfig(function(err, config) {
 			if(err) {
-				console.error('Index build error: ' + err);
+				console.error('Error fetching service configuration: ' + err);
 			}
 			else {
-				debug('Index was built. Identifying gaps ...');
-				indexer.inspectIndex(null, 
-									 function(err, todolist) {
-									 	if(err) {
-											console.error('Index inspection error: ' + err);						 		
-									 	}
-									 	else {
-											debug('Collecting missing statistics ... ');
-											collector.collect(todolist,
-															  function(err, data) {
-															  		if(err) {
-															  			console.error('Statistics collector error: ' + err);
-															  		}
-															  		else {
-															  			debug('Statistics collection results: ' + JSON.stringify(data));
-															  		}
-															  });
-									 	}
-									 });
+				debug('Service configuration: ' + JSON.stringify(config));
+				// asynchronously build index and collect missing statstics
+				debug('Building index ...');
+				indexer.buildIndex(function(err) {
+					if(err) {
+						console.error('Index build error: ' + err);
+					}
+					else {
+						debug('Index was built. Identifying stale or missing statistics ...');
+						indexer.inspectIndex(config, 
+											 function(err, todolist) {
+											 	if(err) {
+													console.error('Index inspection error: ' + err);						 		
+											 	}
+											 	else {
+													debug('Collecting missing statistics ... ');
+													collector.collect(todolist,
+																	  function(err, data) {
+																	  		if(err) {
+																	  			console.error('Statistics collector error: ' + err);
+																	  		}
+																	  		else {
+																	  			debug('Statistics collection results: ' + JSON.stringify(data));
+																	  		}
+																	  });
+											 	}
+											 });
+					}
+				});
 			}
-		});
-
-
-/* TODO remove
-		// seed statistics
-		collector.collectMonth('cloudant', 
-							   2015, 
-							   12, 
-							   function(err) {
-							   		console.log(err);
-		});
-*/
+		});		
 
 		var app = express();
 		app.use(bodyParser.urlencoded({extended: false}));
@@ -263,7 +261,7 @@ const init = require('./lib/initialize.js');
 		// 
 		// API endpoint: service information
 		// 
-		app.get('/about', function (req, res) {
+		app.get('/status', function (req, res) {
 			/*
 			  Expected payload:
 			  -------------------------------------	
@@ -272,7 +270,9 @@ const init = require('./lib/initialize.js');
 			*/
 
 			var info = {
-				source: 'https://github.com/ibm-cds-labs/npmjs-download-stats'
+				source: 'https://github.com/ibm-cds-labs/npmjs-download-stats',
+				last_index_scan: indexer.getLastScanTime(),
+				last_data_collection: collector.getLastCollectionTime()
 			};
 
 			collector.getPackages(function (err, data) {

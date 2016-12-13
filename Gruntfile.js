@@ -6,7 +6,7 @@ module.exports = function (grunt) {
         jshintrc: ".jshintrc",
         ignores : [ "node_modules/**/*.js" ]
       },
-      src: ["index.js", "lib/*.js"],
+      src: ["app.js", "lib/*.js"],
     },
     jscs: {
       src: ["Gruntfile.js", "app.js", "lib/*.js"],

@@ -4,7 +4,7 @@
   "description": "Simple collection/visualization service for npmjs download statistics",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "node app.js",
     "test": "grunt"
   },
   "repository": {

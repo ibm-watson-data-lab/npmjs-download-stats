@@ -1,5 +1,7 @@
 # npmjs-download-stats
 
+[![Build Status](https://travis-ci.org/ibm-cds-labs/npmjs-download-stats.svg?branch=master)](https://travis-ci.org/ibm-cds-labs/npmjs-download-stats)
+
 #### Deploy on Bluemix
 
 ```

@@ -24,7 +24,7 @@ const path = require('path');
 const SimpleDataVis = require('simple-data-vis');
 
 // to enable debugging, set environment variable DEBUG to nps or *
-const debug = require('debug')('npmwd');
+const debug = require('debug')('npmjs');
 
 const init = require('./lib/initialize.js');
 
@@ -60,7 +60,7 @@ const init = require('./lib/initialize.js');
 	console.log('Service is initializing...');
 
 	// initialize Cloudant repository and load defaults
-	init(appEnv, function(err, dataRepository, metaRepository, collector) {
+	init(appEnv, function(err, dataRepository, metaRepository, collector, indexer) {
 
 		//
 		// dataRepository - cloudant handle for data database
@@ -71,23 +71,46 @@ const init = require('./lib/initialize.js');
 			process.exit(1);
 		}
 
-/*		var year = 2015;
-		//var month = null;
-
-		collector.collectYear(['ibm-graph-client', 'couchimport', 'cf-deployment-tracker-client', 'cachemachine', 'cloudant-envoy', 'nosqlimport','nosqlimport-couchdb','nosqlimport-mongodb', 'nosqlelasticsearch'], 
-						  	  year, 
-						  //month, 
-						  function (err) {
-						  	if(err) {
-						  		console.log("Collection error: " + err);
-						  	}
-						  	else {
-							  	console.log("Collection done");
-						  	}
-
+		// asynchronously build index and collect missing statistics
+		debug('Building index ...');
+		indexer.buildIndex(function(err) {
+			if(err) {
+				console.error('Index build error: ' + err);
+			}
+			else {
+				debug('Index was built. Identifying gaps ...');
+				indexer.inspectIndex(null, 
+									 function(err, todolist) {
+									 	if(err) {
+											console.error('Index inspection error: ' + err);						 		
+									 	}
+									 	else {
+											debug('Collecting missing statistics ... ');
+											collector.collect(todolist,
+															  function(err, data) {
+															  		if(err) {
+															  			console.error('Statistics collector error: ' + err);
+															  		}
+															  		else {
+															  			debug('Statistics collection results: ' + JSON.stringify(data));
+															  		}
+															  });
+									 	}
+									 });
+			}
 		});
 
+
+/* TODO remove
+		// seed statistics
+		collector.collectMonth('cloudant', 
+							   2015, 
+							   12, 
+							   function(err) {
+							   		console.log(err);
+		});
 */
+
 		var app = express();
 		app.use(bodyParser.urlencoded({extended: false}));
   		// use https://www.npmjs.com/package/express-handlebars as view engine
@@ -124,7 +147,7 @@ const init = require('./lib/initialize.js');
 			// render stats page
 			collector.getPackages(function(err, packages) {
 				if(err) {
-					console.log("/stats: error retrieving package list: " + err);
+					console.log('/stats: error retrieving package list: ' + err);
 					res.render('stats');
 				}
 				res.render('stats', {packages:packages});	

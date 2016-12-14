@@ -19,7 +19,9 @@
 const cfenv = require('cfenv');
 const express = require('express');
 const exphbs = require('express-handlebars');
+const got = require('got');
 const bodyParser = require('body-parser');
+const passport = require('passport');
 const path = require('path');
 const SimpleDataVis = require('simple-data-vis');
 
@@ -27,6 +29,7 @@ const SimpleDataVis = require('simple-data-vis');
 const debug = require('debug')('npmjs');
 
 const init = require('./lib/initialize.js');
+const security = require('./lib/security.js');
 
 /*
  * 
@@ -110,7 +113,9 @@ const init = require('./lib/initialize.js');
 		});		
 
 		var app = express();
-		app.use(bodyParser.urlencoded({extended: false}));
+		app.use(bodyParser.urlencoded({extended: true}));
+		app.use(bodyParser.json()); // for parsing application/json
+
   		// use https://www.npmjs.com/package/express-handlebars as view engine
 		app.engine('handlebars', exphbs({layoutsDir: 'public/layouts',
 										 defaultLayout: 'main', 
@@ -122,20 +127,53 @@ const init = require('./lib/initialize.js');
 		app.set('views', 'public');
 		app.use(express.static(path.join(__dirname, 'public')));
 
+		console.log('Application security is set to: "' + security.strategyName + '"');
+  		passport.use(security.strategy);
+
 		//
 		// UI endpoint: home page (not secured)
 		//
 		app.get('/', function(req,res) {
 			// render index page
-			res.render('index', {title: '/CloudDataServices Labs'});
+			res.render('index', {});
 		});
 
 		//
-		// UI endpoint: configure service (not secured)
+		// UI endpoint: configure service (optionally secured)
 		//
-		app.get('/configure', function(req,res) {
-			// render configure page
-			res.render('configure', {});
+		app.get('/configure', 
+			    passport.authenticate(security.strategyName, {session:false}),
+				function(req,res) {					
+					// render configure page
+					config.getPackageWatchlist(function(err, packages) {
+						if(err) {
+							console.error('Error fetching package watch list: ' + err);
+							packages = [];
+						}
+						res.render('configure', {packages: packages});		
+					});					
+		});
+
+		//
+		// API endpoint: configure service (optionally secured)
+		//
+		app.post('/configure', 
+			    passport.authenticate(security.strategyName, {session:false}),
+				function(req,res) {
+
+					debug('Configuration update request: ' + require('util').inspect(req.body));
+
+					if(req.body.hasOwnProperty('packages')) {
+						config.setPackageWatchlist(req.body.packages);	
+					}
+
+					config.saveConfig(function(err) {
+						if(err) {
+							console.error('Error updating package watch list: ' + err);
+							res.sendStatus(500);	
+						}
+						res.sendStatus(200);
+					});
 		});
 
 		//
@@ -281,6 +319,21 @@ const init = require('./lib/initialize.js');
 					}
 					res.json(info);			
 			});
+		});
+
+		//
+		// API endpoint: determine if a package is registered in npmjs (not secured)
+		//
+		app.head('/verify/npmjs/:package', function(req,res) {
+			/*
+			  Expected payload:
+			  -------------------------------------	
+				req.params.package: 
+			  -------------------------------------
+			*/
+			got.head('https://npmjs.com/package/' + req.params.package)
+			.then(function() {res.sendStatus(200);})
+			.catch(function(error) {res.sendStatus(error.statusCode);});
 		});
 
 		//

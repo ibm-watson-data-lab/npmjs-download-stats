@@ -4,12 +4,28 @@
 
 #### Deploy on Bluemix
 
+Download and deploy
+
 ```
  $ git clone https://github.com/ibm-cds-labs/npmjs-download-stats
  $ cd npmjs-download-stats
  $ cf create-service cloudantNoSQLDB Lite npmjs-cloudant
- $ cf push
+ $ cf push --no-start
 ```
+
+Restrict access to the configuration page
+
+```
+  $ cf set-env npmjs-download-stats ADMIN_USER <ADMIN_USER_VALUE>
+  $ cf set-env npmjs-download-stats ADMIN_PASSWORD <ADMIN_PASSWORD_VALUE>
+```
+
+Start application
+
+```
+ $ cf start npmjs-download-stats
+```
+
 
 #### Run locally
 

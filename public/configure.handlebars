@@ -1,14 +1,155 @@
-     <div id="main" class="container">
-     	  <div class="row">
-     	  	<h3>There is nothing to configure yet.</h3>
-     	  </div>
-     </div>	
+<div id="main" class="container">
+  <div class="row">
+  	<h4>Package watch list</h4>
+  </div>
+  <div class="row">
+    <div class="col s12">      
+      <div class="chips chips-initial" id="watchlist"></div>
+    </div>  
+  </div>
+  <div class="row">
+   <a class="waves-effect waves-light btn" id="updateButton">Update watchlist</a>    
+  </div>
 
-	 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-     <script type="text/javascript" src="/js/materialize/0.97.8/js/materialize.min.js"></script>
+<!-- Package not found Modal Structure -->
+<div id="pkgnotfnd" class="modal">
+  <div class="modal-content">
+    <h5>The package was not found.</h5>
+  </div>
+  <div class="modal-footer">
+    <a href="#!" class=" modal-action modal-close waves-effect waves-green btn-flat">OK</a>
+  </div>
+</div>
 
-     <script>
-         $(document).ready(function(){
-  			
-    	 });
-     </script>
+<!-- Package not found Modal Structure -->
+<div id="noop" class="modal">
+  <div class="modal-content">
+    <h5>There's nothing to do.</h5>
+  </div>
+  <div class="modal-footer">
+    <a href="#!" class=" modal-action modal-close waves-effect waves-green btn-flat">OK</a>
+  </div>
+</div>
+
+<!-- Modal Structure -->
+<div id="modal2" class="modal">
+  <div class="modal-content">
+    <h5>Confirmation</h5>
+    <p>Your request to update the package watch list has been submitted. Download statistics will be updated to reflect the changes.</p>
+  </div>
+  <div class="modal-footer">
+    <a href="#!" class=" modal-action modal-close waves-effect waves-green btn-flat">OK</a>
+  </div>
+</div>
+
+
+</div>	
+
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script type="text/javascript" src="/js/materialize/0.97.8/js/materialize.min.js"></script>
+
+<script>
+
+    var chips = [];
+    var originalWatchlist = [];
+    var invalidpackages={};
+
+    $(document).ready(function(){
+
+        $('.modal-trigger').leanModal();
+
+        // initialize page
+        var input = '{{packages}}'; 
+        if(input.length > 0) {
+            var packages = ($.isArray(input)) ? input : input.split(',');
+            $.each(packages.sort(), function(index, value) {
+                chips.push({tag:value});
+            });
+            originalWatchlist = chips.slice(0);
+            console.log('Current watchlist: ' + JSON.stringify(chips));
+        }
+
+        $('.chips-initial').material_chip({
+            data: chips
+        });
+
+        // user added a package to the watch list; verify that is is known to npmjs
+        $('.chips').on('chip.add', function(e, chip){
+            // verify that a package with this name was published on npmjs          
+            $.ajax(
+                {
+                    type: 'HEAD',
+                    url: '/verify/npmjs/' + chip.tag
+                }
+            )
+            .done(function(data, status, jqXHR) {
+                // package was found
+            })
+            .fail(function(data, status, jqXHR) {
+                invalidpackages[chip.tag] = 1;
+                $('#updateButton').addClass('disabled');
+                $('#watchlist').addClass('tooltipped');
+                $('#watchlist').attr('data-tooltip', 'Watch list contains unknown package(s): ' + Object.keys(invalidpackages).sort());
+                $('.tooltipped').tooltip({delay: 50});
+                // display error    
+                $('#pkgnotfnd').openModal({dismissible:false});
+            });
+        });
+
+        // user removed a package from the watch list
+        $('.chips').on('chip.delete', function(e, chip){
+            if(invalidpackages.hasOwnProperty(chip.tag)) {
+                delete invalidpackages[chip.tag];
+                if(Object.keys(invalidpackages).length === 0) {
+                    $('#updateButton').removeClass('disabled');
+                    $('#watchlist').removeClass('tooltipped');
+                    $('#watchlist').tooltip('remove');
+                    $('.tooltipped').tooltip({delay: 50});
+                }
+            }
+        });
+
+        // user wants to update the service configuration
+        $('#updateButton').click( function() {
+            // don't send update request; one or more invalid packages were found
+            if(Object.keys(invalidpackages).length > 0) {
+                Materialize.toast('Watchlist is invalid. Remove ' + Object.keys(invalidpackages).sort(), 5000);
+            }
+            else {
+                // compare original watch list with updated watchlist        
+                chips = chips.sort(function(a,b){ return a.tag.localeCompare(b.tag);});
+                console.log('Old: ' + JSON.stringify(originalWatchlist));
+                console.log('New: ' + JSON.stringify(chips));        
+                if(chips.toString() !==  originalWatchlist.toString()) {
+                    var watchlistParmVal = [];
+                    chips.forEach(function(chip) {
+                        watchlistParmVal.push(chip.tag);
+                    });
+                    console.log('Posting ' + JSON.stringify({packages: watchlistParmVal}));
+                    $.ajax({url: '/configure',
+                            type: 'POST',
+                            data: JSON.stringify({packages: watchlistParmVal}),
+                            contentType:'application/json',
+                            success: function(data, textStatus, jqXHR) {
+                               console.log('Status: ' + textStatus);
+                               originalWatchlist = chips;
+                               $('#modal2').openModal({dismissible:false});                     
+                            },
+                            error: function(jqXHR, textStatus, errorThrown) {
+                                console.error('jqXHR: ' + jqXHR);
+                                console.error('Status: ' + textStatus);
+                                console.error('errorThrown: ' + errorThrown);
+                            } 
+                           });
+                }
+                else {
+                    console.log('Nothing to do.');
+                    // the configuration has not changed
+                    $('#noop').openModal({dismissible:false});
+                }
+            }
+    	});
+
+    });
+
+</script>

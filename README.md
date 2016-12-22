@@ -30,6 +30,5 @@ Download and install the code and its dependencies
 * In `vcap_services.json` replace the `TODO` placeholders with your Cloudant instance information.
 
 ``` 
- $ 
  $ cf push
 ```

@@ -71,43 +71,59 @@ const init = require('./lib/initialize.js');
 			process.exit(1);
 		}
 
-		debug('Retrieving configuration ...');
-		config.getConfig(function(err, config) {
-			if(err) {
-				console.error('Error fetching service configuration: ' + err);
-			}
-			else {
-				debug('Service configuration: ' + JSON.stringify(config));
-				// asynchronously build index and collect missing statstics
-				debug('Building index ...');
-				indexer.buildIndex(function(err) {
-					if(err) {
-						console.error('Index build error: ' + err);
-					}
-					else {
-						debug('Index was built. Identifying stale or missing statistics ...');
-						indexer.inspectIndex(config, 
-											 function(err, todolist) {
-											 	if(err) {
-													console.error('Index inspection error: ' + err);						 		
-											 	}
-											 	else {
-													debug('Collecting missing statistics ... ');
-													collector.collect(todolist,
-																	  function(err, data) {
-																	  		if(err) {
-																	  			console.error('Statistics collector error: ' + err);
-																	  		}
-																	  		else {
-																	  			debug('Statistics collection results: ' + JSON.stringify(data));
-																	  		}
-																	  });
-											 	}
-											 });
-					}
-				});
-			}
-		});		
+
+		var refresh = function() {
+			config.getConfig(function(err, config) {
+				if(err) {
+					console.error('Error fetching service configuration: ' + err);
+				}
+				else {
+					debug('Service configuration: ' + JSON.stringify(config));
+					// asynchronously build index and collect missing statstics
+					debug('Building index ...');
+					indexer.buildIndex(function(err) {
+						if(err) {
+							console.error('Index build error: ' + err);
+						}
+						else {
+							console.log('Index was built. Identifying stale or missing statistics ...');
+							indexer.inspectIndex(config, 
+												 function(err, 
+												 		  todolist,
+												 		  stalelist) {
+												 	if(err) {
+														console.error('Index inspection error: ' + err);						 		
+												 	}
+												 	else {
+												 		console.log('Purging stale statistics ...');
+												 		collector.purge(stalelist,
+												 						function(err) {
+												 			if(err) {
+												 				// treat as non-fatal
+												 				console.error('Error purging stale data: ' + err);
+												 			}
+															console.log('Collecting missing and stale statistics ... ');
+															collector.collect(todolist,
+																			  function(err, data) {
+																			  		if(err) {
+																			  			console.error('Statistics collector error: ' + JSON.stringify(err));
+																			  		}
+																			  		else {
+																			  			console.log('Download statistics have been updated.');
+																			  			debug('Statistics collection results: ' + JSON.stringify(data));
+																			  		}
+															});
+												 		});
+														
+												 	}
+												 });
+						}
+					});
+				}
+			});		
+		};
+
+		refresh();
 
 		var app = express();
 		app.use(bodyParser.urlencoded({extended: false}));
@@ -291,11 +307,12 @@ const init = require('./lib/initialize.js');
 		});
 
 		//
-		// periodically remove expired tokens from the repository database
+		// periodically replace stale statistics
 		//
 		setInterval(function() {
-			// TODO
-		}, 900000); // every 15 minutes
+			console.log('Refreshing statistics ...');
+			refresh();
+		}, 604800000); // every 7 days
 	});
 
 	// send sample application deployment tracking request to https://github.com/IBM-Bluemix/cf-deployment-tracker-service

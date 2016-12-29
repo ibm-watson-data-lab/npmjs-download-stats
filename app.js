@@ -131,8 +131,8 @@ const init = require('./lib/initialize.js');
 		app.engine('handlebars', exphbs({layoutsDir: 'public/layouts',
 										 defaultLayout: 'main', 
 			                             helpers: { 
-			                             	getSlashCommand: function() { 
-			                             		return process.env.SLACK_SLASH_COMMAND || 'nps';}
+			                             	json: function(object) { 
+			                             		return JSON.stringify(object);}
 			                             }}));
 		app.set('view engine', 'handlebars');
 		app.set('views', 'public');
@@ -164,7 +164,7 @@ const init = require('./lib/initialize.js');
 					console.log('/stats: error retrieving package list: ' + err);
 					res.render('stats');
 				}
-				res.render('stats', {packages:packages});	
+				res.render('stats', {packages:JSON.stringify(packages)});	
 			});
 			
 		});

@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/ibm-cds-labs/npmjs-download-stats.svg?branch=master)](https://travis-ci.org/ibm-cds-labs/npmjs-download-stats)
 
+[Sample deployment](https://npmjs-download-stats.mybluemix.net/stats), tracking Node.js packages developed by members of (https://github.com/ibm-cds-labs)
+
 #### Deploy on Bluemix
 
 ```

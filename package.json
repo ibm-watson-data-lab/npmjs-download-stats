@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "node app.js",
-    "test": "grunt"
+    "test": "grunt",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "repository": {
     "type": "git",
@@ -28,13 +30,15 @@
     "lodash": "^4.17.2",
     "path": "^0.12.7",
     "rest-facade": "^1.4.1",
-    "simple-data-vis": "^0.2.0"
+    "simple-data-vis": "^0.2.0",
+    "snyk": "^1.317.0"
   },
-   "devDependencies": {
+  "devDependencies": {
     "grunt": "0.4.5",
     "grunt-cli": "0.1.13",
     "grunt-contrib-jshint": "0.12.0",
     "jshint": "2.8.0",
     "grunt-jscs": "2.8.0"
-  }
+  },
+  "snyk": true
 }

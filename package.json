@@ -17,7 +17,7 @@
     "url": "https://github.com/ibm-cds-labs/npmjs-download-stats/issues"
   },
   "dependencies": {
-    "async": "^2.1.4",
+    "async": "^3.2.3",
     "body-parser": "^1.15.2",
     "cachemachine": "^1.7.0",
     "cfenv": "^1.0.3",
